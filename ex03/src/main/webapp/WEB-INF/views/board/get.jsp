@@ -140,7 +140,7 @@ aria-labelledby="myModalLabel" aria-hidden="true">
 	</div> 
 </div>
 
-
+<
 <script type="text/javascript" src="/resources/js/reply.js?ver=1"></script>
 
 <script>
@@ -175,7 +175,7 @@ aria-labelledby="myModalLabel" aria-hidden="true">
 		}}, function(err){ alert("ERROR");}
 		
 	);
-	*/
+	
 	
 	//35번 댓글 수정
 	replyService.update({
@@ -190,7 +190,7 @@ aria-labelledby="myModalLabel" aria-hidden="true">
 	replyService.get(10, function(data){
 		console.log(data);
 	})
-
+*/
 </script>
 
 <script>
