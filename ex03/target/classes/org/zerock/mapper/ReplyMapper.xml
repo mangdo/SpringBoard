@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "=//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.zerock.mapper.ReplyMapper">
+
+<insert id="insert">
+	insert into tbl_reply (rno, bno, reply, replyer)
+	values (seq_reply.nextval, #{bno}, #{reply}, #{replyer})
+</insert>
+
+<select id ="read" resultType="org.zerock.domain.ReplyVO">
+
+	select * from tbl_reply where rno=#{rno}
+</select>
+
+<delete id ="delete">
+	delete from tbl_reply where rno=#{rno}
+</delete>
+
+<update id="update">
+	update tbl_reply set reply= #{reply}, updateDate=sysdate where rno =#{rno}
+</update>
+
+<!-- 댓글에 페이징처리도 추가 IDX_REPLY를 이용해서 테이블에 접근
+IDX_REPLY는 bno내림차순 rno오름차순으로 이미 정렬되어있어 빠르게 접근가능-->
+<select id="getListWithPaging" resultType="org.zerock.domain.ReplyVO">
+	<![CDATA[
+	select rno, bno, reply, replyer, replyDate, updateDate
+	from 
+	(
+		select /*+INDEX(tbl_reply idx_reply) */
+		rownum rn, rno, bno, reply, replyer, replyDate, updateDate
+		from tbl_reply
+		where bno= #{bno} and rno>0 and rownum <= #{cri.pageNum} * #{cri.amount}
+	) where rn > (#{cri.pageNum} -1) * #{cri.amount}
+	]]> 
+	
+</select>
+
+<select id="getCountByBno" resultType="int">
+<![CDATA[
+	select count(rno) from tbl_reply where bno = #{bno}
+]]>
+</select>
+
+<!-- #{bno}는 @param의 bno와 매칭되어 사용 -->
+</mapper>
