@@ -25,16 +25,6 @@ public class BoardController {
 	@Setter(onMethod_= {@Autowired})//생성자를 만들지 않았었을 경우만!
 	private BoardService service;//주입
 	
-	/*
-	@GetMapping("/list")
-	public void list(Model model) {
-		
-		log.info("list...");
-		model.addAttribute("list",service.getList());
-		
-	}
-	*/
-	
 	@GetMapping("/list")
 	public void list(Model model, Criteria cri) {
 		
