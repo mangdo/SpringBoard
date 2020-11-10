@@ -3,11 +3,14 @@ package org.zerock.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.zerock.domain.BoardVO;
 import org.zerock.domain.Criteria;
+import org.zerock.mapper.BoardAttachMapper;
 import org.zerock.mapper.BoardMapper;
 
 import lombok.AllArgsConstructor;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
 
@@ -17,13 +20,27 @@ import lombok.extern.log4j.Log4j;
 public class BoardServiceImpl implements BoardService{
 
 	
-	//spring 4.3 이상에서 자동처리 @Setter(onMethod_=@Autowired)
+	//spring 4.3 이상에서 자동주입 @Setter(onMethod_=@Autowired)대신
+	
 	private BoardMapper mapper;
 	
+	private BoardAttachMapper attachMapper;
+	
+	@Transactional //tbl_board와 tbl_attach테이블의 insert가 같이 진행디ㅗ어야해서
 	@Override
 	public void register(BoardVO board) {
 		log.info("register...");
-		mapper.insertSelectKey(board);
+		
+		//우선 tbl_board에저장
+		mapper.insertSelectKey(board); //Mybatis의 selectkey를 이용해서 별도의 currval을 매번 호출할 필요가 없다.
+		
+		if(board.getAttachList()==null || board.getAttachList().size()<=0) return;
+		
+		// tbl_attach에도 저장
+		board.getAttachList().forEach(attach->{
+			attach.setBno(board.getBno()); //각 첨부파일은 게시물번호 세팅
+			attachMapper.insert(attach);
+		});
 	}
 
 	@Override

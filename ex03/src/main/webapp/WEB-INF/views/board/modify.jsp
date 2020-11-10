@@ -39,8 +39,7 @@
 				
 				<div class= "form group">
 					<label>Text area</label> 
-					<textarea class="form-control" rows="3" name='content' >
-						<c:out value="${board.content}"/>
+					<textarea class="form-control" rows="3" name='content' ><c:out value="${board.content}"/>
 					</textarea>
 				</div>
 				
