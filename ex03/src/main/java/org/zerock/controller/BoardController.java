@@ -1,7 +1,11 @@
 package org.zerock.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +13,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.zerock.domain.BoardAttachVO;
 import org.zerock.domain.BoardVO;
 import org.zerock.domain.Criteria;
 import org.zerock.domain.PageDTO;
@@ -99,6 +105,16 @@ public class BoardController {
 	
 	@GetMapping("/register")
 	public void register() {
+		//입력페이지를 보여주는 역할만 해서 별도의 처리가 필요하지않는다.
+		//리턴이 void인 경우 해당 URL경로를 그대로 jsp파일의 이름으로 사용
+	}
+	
+	@GetMapping(value="/getAttachList", produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public ResponseEntity<List<BoardAttachVO>> getAttachList(Long bno){
+		log.info("getAttachList " + bno);
+		return new ResponseEntity<>(service.getAttachList(bno),HttpStatus.OK);
 		
 	}
+	
 }

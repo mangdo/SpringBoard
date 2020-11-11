@@ -5,6 +5,60 @@
 
 <%@include file="../includes/header.jsp"%>
 
+<style>
+.uploadResult {
+	width:100%;
+	background-color:gray;	
+}
+
+.uploadResult ul{
+	display:flex;
+	flex-flow : row;
+	justify-content :center;
+	align-items:center;
+}
+
+.uploadResult ul li {
+	list-style:none;
+	padding:10px;
+	align-context :center;
+	text-align : center;
+}
+
+.uploadResult ul li img{
+	width:300px;
+}
+
+.uploadResult ul li span{
+	color : white;
+}
+
+.bigPictureWrapper{
+	position : absolute;
+	display : none;
+	jsutify-content:center;
+	align-items:center;
+	top:0%;
+	width:100%;
+	height:100%;
+	background-color:gray;
+	z-index:100;
+	background:rgba(255,255,255,0.5);
+}
+.bigPicture{
+	position:relative;
+	display:flex;
+	
+	justify-content:center;
+	align-items:center;
+}
+<!--css의 flex기능을 사용하면 화면의 정중앙에 배치-->
+
+.bigPicture img{
+	width:600px;
+}
+</style>
+
 <div class="row">
 	<div class="col-lg-12">
 		<h1 class="page-header">Tables</h1>
@@ -64,6 +118,24 @@
 </div>
 <!-- /.row -->
 
+<!-- 첨부파일 -->
+<div class='bigPictureWrapper'>
+	<div class='bigPicture'></div>
+</div>
+
+<div class="row">
+	<div class="col-lg-12">
+		<div class="panel panel-default">
+			<div class="panel-heading">Files</div>
+			<div class="panel-body">
+				<div class="uploadResult">
+					<ul></ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
 <!-- 댓글처리 -->
 <div class= 'row'>
 	<div class="col-lg-12">
@@ -98,7 +170,10 @@
 	</div>
 </div>
 
+
+
 <%@include file="../includes/footer.jsp"%>
+
 <!-- 댓글 추가는 모달창을 통해 진행한다. 모달창은 별도로 화면 중앙에 위치하기때문에 태그 위치는 중요하지xx script전이면됨 -->
 <div class="modal fade" id ="myModal" tabindex="-1" role="dialog"
 aria-labelledby="myModalLabel" aria-hidden="true">
@@ -140,58 +215,7 @@ aria-labelledby="myModalLabel" aria-hidden="true">
 	</div> 
 </div>
 
-<
 <script type="text/javascript" src="/resources/js/reply.js?ver=1"></script>
-
-<script>
-	console.log("--------");
-	console.log("JS TEST");
-
-	var bnoValue='<c:out value="${board.bno}"/>';
-
-	/*for replyService add test
-	replyService.add(
-	{reply:"JS TEST", replyer : "tester", bno:bnoValue}
-	,function(result){
-		alert("RESULT : " +result);	
-	}
-	);
-	*/
-	
-	//reply List test
-	replyService.getList({bno:bnoValue, page :1}, function(list){
-		for(var i =0, len = list.length||0; i<len ; i++){
-			console.log(list[i]);
-		}
-		
-	});
-	
-	/*32번 댓글 삭제 테스트
-	replyService.remove(32, function(count){
-		console.log(count);
-		
-		if(count==="success"){
-			alert("REMOVED");
-		}}, function(err){ alert("ERROR");}
-		
-	);
-	
-	
-	//35번 댓글 수정
-	replyService.update({
-		rno : 35,
-		bno : bnoValue,
-		reply : "Modify reply~~~~"
-	}, function(result){
-		alert("수정완료");
-	})
-	
-	//특정 번호의 댓글조회 GET방식으로 처리함
-	replyService.get(10, function(data){
-		console.log(data);
-	})
-*/
-</script>
 
 <script>
 $(document).ready(function(){
@@ -373,7 +397,7 @@ $(document).ready(function(){
 });
 
 </script>
-
+<!--버튼 클릭 시 -->
 <script type= "text/javascript">
 $(document).ready(function(){
 
@@ -382,7 +406,6 @@ $(document).ready(function(){
 
 	$("button[data-oper='modify']").on("click",function(e){
 		operForm.attr("action","/board/modify").submit();
-		<%System.out.println("왜");%>
 		
 	});
 	
@@ -393,6 +416,71 @@ $(document).ready(function(){
 		operForm.submit();
 	});
 	
+});
+</script>
+
+
+<!-- 첨부파일 -->
+<script>
+$(document).ready(function(){
+	(function(){
+		var bno = '<c:out value="${board.bno}"/>';
+		$.getJSON("/board/getAttachList", {bno:bno}, function(arr){
+			console.log(arr);
+			var str = "";
+			$(arr).each(function(i, attach){
+				// image타입
+				if(attach.fileType){
+					var fileCallPath = encodeURIComponent( attach.uploadPath + "/s_"+attach.uuid+"_"+attach.fileName);
+					str += "<li data-path='"+attach.uploadPath+"' data-uuid='"+attach.uuid+"' data-filename='"+attach.fileName+"' data-type='"+attach.fileType+"'> </div>";
+					str += "<img src='/display?fileName="+fileCallPath+"'>";
+					str += "</div></li>";
+				}else{// 파일타입
+					str += "<li data-path='"+attach.uploadPath+"' data-uuid='"+attach.uuid+"' data-filename='"+attach.fileName+"' data-type='"+attach.fileType+"'> </div>";
+					str += "<span> "+attach.fileName+"</span><br/>"
+					str += "<img src='/resources/img/attach.png'>";
+					str += "</div></li>";
+				}
+			});
+			
+			$(".uploadResult ul").html(str);
+		});//end getjson
+		
+	})();//end function(즉시실행 함수)
+	
+	//첨부파일 클릭시 이벤트 처리
+	$(".uploadResult").on("click","li",function(e){
+		console.log("view image");
+		var liObj = $(this);
+		
+		var path = encodeURIComponent(liObj.data("path")+"/"+liObj.data("uuid")+"_"+liObj.data("filename"));
+		if(liObj.data("type")){//이미지의 경우 크게 보여줌
+			showImage(path.replace(new RegExp(/\\/g),"/"));
+		}else{
+			//파일인 경우엔 다운로드
+			self.location="/download?fileName="+path;
+		}
+	});
+	
+	//원본이미지 보여주기
+	function showImage(fileCallPath){
+		alert(fileCallPath);
+		$(".bigPictureWrapper").css("display","flex").show();
+		
+		$(".bigPicture")
+		.html("<img src= '/display?fileName="+fileCallPath+"'>")
+		.animate({width:'100%', height:'100%'},1000); //배경이 흐려진 상태에서 원본 이미지가 점차 크게보여지게함.
+	}
+	
+	//원본 이미지 클릭시 창닫기
+	$(".bigPictureWrapper").on("click", function(e){
+		$(".bigPicture").animate({width:'0%',height:'0%'},1000);
+		setTimeout(function(){
+			$('.bigPictureWrapper').hide();
+			
+		},1000);
+		
+	});
 });
 
 </script>

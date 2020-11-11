@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.zerock.domain.BoardAttachVO;
 import org.zerock.domain.BoardVO;
 import org.zerock.domain.Criteria;
 import org.zerock.mapper.BoardAttachMapper;
@@ -32,7 +33,7 @@ public class BoardServiceImpl implements BoardService{
 		log.info("register...");
 		
 		//우선 tbl_board에저장
-		mapper.insertSelectKey(board); //Mybatis의 selectkey를 이용해서 별도의 currval을 매번 호출할 필요가 없다.
+		mapper.insertSelectKey(board); // Mybatis의 selectkey를 이용해서 별도의 currval을 매번 호출할 필요가 없다.
 		
 		if(board.getAttachList()==null || board.getAttachList().size()<=0) return;
 		
@@ -81,6 +82,12 @@ public class BoardServiceImpl implements BoardService{
 	public int getTotal(Criteria cri) {
 		log.info("get total count");
 		return mapper.getTotalCount(cri);
+	}
+
+	@Override
+	public List<BoardAttachVO> getAttachList(Long bno) {
+		log.info("get attch list by bno"+bno);
+		return attachMapper.findByBno(bno);
 	}
 	
 }

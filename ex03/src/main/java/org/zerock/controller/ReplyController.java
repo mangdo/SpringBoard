@@ -29,8 +29,7 @@ public class ReplyController {
 	
 	//JSON 타입으로 된 댓글 데이터를 받아 문자열로 결과를 알려준다.
 	//댓글 등록
-	@PostMapping(value="/new", consumes="application/json",
-			produces = {MediaType.TEXT_PLAIN_VALUE})
+	@PostMapping(value="/new", consumes="application/json",produces = {MediaType.TEXT_PLAIN_VALUE})
 	public ResponseEntity<String> create(@RequestBody ReplyVO vo){
 		//@RequestBody를 이용해서 JSON데이터를 ReplyVO타입으로 변황하도록 지정한다
 		
@@ -45,9 +44,7 @@ public class ReplyController {
 		
 	}
 	
-	@GetMapping( value="/pages/{bno}/{page}",
-			produces= {MediaType.APPLICATION_XML_VALUE,
-					MediaType.APPLICATION_JSON_UTF8_VALUE })
+	@GetMapping( value="/pages/{bno}/{page}",produces= {MediaType.APPLICATION_XML_VALUE,MediaType.APPLICATION_JSON_UTF8_VALUE })
 	public ResponseEntity<ReplyPageDTO> getList(
 			@PathVariable("page") int page,
 			@PathVariable("bno") Long bno) {
@@ -63,9 +60,7 @@ public class ReplyController {
 	}
 	
 	//댓글 가져오기
-	@GetMapping(value="/{rno}",
-			produces= {MediaType.APPLICATION_XML_VALUE,
-					MediaType.APPLICATION_JSON_UTF8_VALUE })
+	@GetMapping(value="/{rno}",produces= {MediaType.APPLICATION_XML_VALUE,MediaType.APPLICATION_JSON_UTF8_VALUE })
 	public ResponseEntity<ReplyVO> get(@PathVariable("rno") Long rno){
 		log.info("get : "+rno);
 		return new ResponseEntity<>(service.get(rno), HttpStatus.OK);
@@ -83,8 +78,7 @@ public class ReplyController {
 	}
 	
 	//댓글 수정
-	@RequestMapping(method= { RequestMethod.PUT, RequestMethod.PATCH},
-			value="/{rno}", consumes="application/json",
+	@RequestMapping(method= { RequestMethod.PUT, RequestMethod.PATCH},value="/{rno}", consumes="application/json",
 			produces= {MediaType.TEXT_PLAIN_VALUE })
 	public ResponseEntity<String> modify(
 			@RequestBody ReplyVO vo,
