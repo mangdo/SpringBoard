@@ -20,4 +20,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<delete id="deleteAll">
 	delete tbl_attach where bno = #{bno}
 	</delete>
+	
+	<select id = "getOldFiles" resultType="org.zerock.domain.BoardAttachVO">
+	select * from tbl_attach where uploadpath = to_char(sysdate -1, 'yyyy\mm\dd')
+	</select>
 </mapper>
