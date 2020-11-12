@@ -36,6 +36,7 @@ public class Criteria {
 	}
 	
 	//여러개의 파라미터를 연결해서 URL형태로 만들어주는 기능을 가지고 있다.
+	//UriComponentsBuilder는 브라우저에서 get방식등 파라미터 전송에 사용되는 문자열(쿼리스트링)을 손쉽게 처리할 수 있는 클래스 
 	public String getListLink() {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromPath("")
 				.queryParam("pageNum", this.pageNum)

@@ -52,7 +52,6 @@
 	justify-content:center;
 	align-items:center;
 }
-<!--css의 flex기능을 사용하면 화면의 정중앙에 배치-->
 
 .bigPicture img{
 	width:600px;

@@ -2,6 +2,10 @@ package org.zerock.controller;
 
 import java.util.List;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -75,14 +79,7 @@ public class BoardController {
 		if(service.modify(board)) {
 			rttr.addFlashAttribute("result","succes");
 		}
-		/*UriComponentsBuilder를 사용하지않았을때
-		 * rttr.addAttribute("pageNum",cri.getPageNum());
-		rttr.addAttribute("amount",cri.getAmount());
-		rttr.addAttribute("type",cri.getType());
-		rttr.addAttribute("keyword",cri.getKeyword());
-		
-		return "redirect:/board/list";
-		*/
+
 		return "redirect:/board/list"+cri.getListLink();
 
 	}
@@ -90,14 +87,13 @@ public class BoardController {
 	@PostMapping("/remove")
 	public String remove(@RequestParam("bno") Long bno, @ModelAttribute("cri") Criteria cri, RedirectAttributes rttr) {
 		log.info("remove.."+bno);
+		//첨부파일 삭제
+		List<BoardAttachVO> attachList = service.getAttachList(bno);
 		if(service.remove(bno)) {
+			// 첨부파일 삭제
+			deleteFiles(attachList);
 			rttr.addFlashAttribute("result","success");
 		}
-		//rttr.addAttribute("pageNum",cri.getPageNum());
-		//rttr.addAttribute("amount",cri.getAmount());
-		//rttr.addAttribute("type",cri.getType());
-		//rttr.addAttribute("keyword",cri.getKeyword());		
-		//return "redirect:/board/list";
 		return "redirect:/board/list"+cri.getListLink();
 
 		
@@ -117,4 +113,29 @@ public class BoardController {
 		
 	}
 	
+	// 첨부파일 삭제
+	private void deleteFiles(List<BoardAttachVO> attachList) {
+		if(attachList == null || attachList.size() == 0) {
+			return;
+		}
+		
+		log.info("delete attach files..");
+		log.info(attachList);
+		
+		attachList.forEach(attach->{
+			try {
+				Path file = Paths.get("C:\\java\\upload\\"+attach.getUploadPath()+"\\"+attach.getUuid()+"_"+attach.getFileName());
+				Files.deleteIfExists(file);
+				
+				if(Files.probeContentType(file).startsWith("image")) {
+					Path thumbNail = Paths.get("C:\\java\\upload\\"+attach.getUploadPath()+"\\s_"+attach.getUuid()+"_"+attach.getFileName());
+					Files.delete(thumbNail);
+				}
+				
+			} catch(Exception e) {
+			log.error("delete file error"+e.getMessage());
+			}
+		
+		}); //end foreach
+	}
 }

@@ -44,7 +44,7 @@ delete tbl_board where bno=#{bno}
 	where bno=#{bno}
 </update>
 
-<!-- sql태그를 이용해서 피래요한 경우에 동일한 SQL를 재사용 -->
+<!-- sql태그를 이용해서 필요한 경우에 동일한 SQL를 재사용 -->
 <sql id="criteria">
 	<trim prefix="(" suffix=") AND " prefixOverrides="OR">
 		<foreach item='type' collection="typeArr">

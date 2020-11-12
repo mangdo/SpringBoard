@@ -2,6 +2,7 @@ package org.zerock.service;
 
 import java.util.List;
 
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zerock.domain.BoardAttachVO;
@@ -11,7 +12,6 @@ import org.zerock.mapper.BoardAttachMapper;
 import org.zerock.mapper.BoardMapper;
 
 import lombok.AllArgsConstructor;
-import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
 
@@ -53,15 +53,30 @@ public class BoardServiceImpl implements BoardService{
 	@Override
 	public boolean modify(BoardVO board) {
 		log.info("modify.."+board);
-		//mapper.update()가 정상수행을 했을시 1, 아니면0을 리턴한다
-		return mapper.update(board)==1;
-		//1이면 true가 리턴
+		
+		//mapper.update()가 정상수행을 했을시  true
+		boolean modifyResult = mapper.update(board)==1;
+		
+		// 기존 첨부파일은 우선 삭제
+		attachMapper.deleteAll(board.getBno());
+		// 다시 첨부파일 데이터를 추가한다!
+		if(modifyResult&&board.getAttachList()!=null&&board.getAttachList().size()>0) {
+			board.getAttachList().forEach(attach->{
+				attach.setBno(board.getBno());
+				attachMapper.insert(attach);
+			});
+		}
+		return modifyResult; 
 	}
-
+	
+	@Transactional
 	@Override
 	public boolean remove(Long bno) {
 		log.info("remove.." +bno);
+		
+		attachMapper.deleteAll(bno); // 첨부파일 삭제
 		return mapper.delete(bno)==1;
+		
 	}
 /*
 	@Override
