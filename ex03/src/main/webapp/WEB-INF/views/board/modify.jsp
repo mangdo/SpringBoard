@@ -2,6 +2,7 @@
     pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 
 <%@include file="../includes/header.jsp"%>
 <style>
@@ -78,6 +79,8 @@
 					<input type='hidden' name='amount' value='<c:out value="${cri.amount }"/>'>		
 				  	<input type='hidden' name='keyword' value='<c:out value="${cri.keyword }"/>'>				
 					<input type='hidden' name='type' value='<c:out value="${cri.type }"/>'>					
+					<!-- csrf토큰추가 -->
+					<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 				
 				<div class= "form group">
 				<label>Bno</label> <input class="form-control" name='bno'
@@ -112,9 +115,15 @@
 				value='<fmt:formatDate pattern = "yyyy/MM/dd" value="${board.updateDate }" />' readonly="readonly">
 				</div>
 				
-				<button type = "submit" data-oper='modify' class="btn btn-default" >
-				Modify</button>
-				<button type = "submit" data-oper='remove' class="btn btn-danger">Remove</button>
+				<sec:authentication property="principal" var="pinfo"/>
+					<sec:authorize access="isAuthenticated()">
+					<!-- 작성자와 현재 로그인한 사용자가 동일하다면 -->
+					<c:if test="${pinfo.username eq board.writer}">
+						
+						<button type = "submit" data-oper='modify' class="btn btn-default" >Modify</button>
+						<button type = "submit" data-oper='remove' class="btn btn-danger">Remove</button>
+					</c:if>
+				</sec:authorize>
 				<button type = "submit" data-oper='list' class="btn btn-info">List</button>
 			</form>
 			</div>
@@ -253,6 +262,9 @@ $(document).ready(function(){
 		return true;
 	}
 	
+	var csrfHeaderName = "${_csrf.headerName}";
+	var csrfTokenValue = "${_csrf.token}";
+	
 	// 첨부파일 업로드는 <input type='file'>의 내용이 변경되는 것을 감지하여 처리
 	$("input[type='file']").change(function(e){
 		var formData = new FormData();
@@ -273,6 +285,9 @@ $(document).ready(function(){
 			processData : false,
 			contentType : false,
 			data : formData,
+			beforeSend : function(xhr){
+				xhr.setRequestHeader(csrfHeaderName, csrfTokenValue);
+			},
 			type : 'POST',
 			dataType : 'json', //서버에서 보내줄 데이터타입
 			success : function(result){

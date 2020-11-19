@@ -3,6 +3,7 @@ package org.zerock.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ public class ReplyController {
 	
 	//JSON 타입으로 된 댓글 데이터를 받아 문자열로 결과를 알려준다.
 	//댓글 등록
+	@PreAuthorize("isAuthenticated()")
 	@PostMapping(value="/new", consumes="application/json",produces = {MediaType.TEXT_PLAIN_VALUE})
 	public ResponseEntity<String> create(@RequestBody ReplyVO vo){
 		//@RequestBody를 이용해서 JSON데이터를 ReplyVO타입으로 변황하도록 지정한다
@@ -66,18 +68,21 @@ public class ReplyController {
 		return new ResponseEntity<>(service.get(rno), HttpStatus.OK);
 		
 	}
+	
 	//댓글지우기
-	@DeleteMapping(value="/{rno}", produces= {MediaType.TEXT_PLAIN_VALUE })
-	public ResponseEntity<String> remove(@PathVariable("rno") Long rno){
+	@PreAuthorize("principal.username == #vo.replyer")
+	@DeleteMapping(value="/{rno}")
+	public ResponseEntity<String> remove(@RequestBody ReplyVO vo, @PathVariable("rno") Long rno){
 		log.info("remove : "+rno);
 		
-		return service.remove(rno)==1? 
-				new ResponseEntity<>("success",HttpStatus.OK)
+		return service.remove(rno)==1
+				? new ResponseEntity<>("success",HttpStatus.OK)
 				: new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		
 	}
 	
 	//댓글 수정
+	@PreAuthorize("principal.username == #vo.replyer")
 	@RequestMapping(method= { RequestMethod.PUT, RequestMethod.PATCH},value="/{rno}", consumes="application/json",
 			produces= {MediaType.TEXT_PLAIN_VALUE })
 	public ResponseEntity<String> modify(

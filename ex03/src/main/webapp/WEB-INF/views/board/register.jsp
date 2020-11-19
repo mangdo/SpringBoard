@@ -2,6 +2,7 @@
 	pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 
 <%@include file="../includes/header.jsp"%>
 
@@ -51,6 +52,8 @@
 			<div class="panel-body">
 
 				<form role="form" action="/board/register" method="post">
+					<!-- 시큐리티를 사용할때는 반드시 csrf토큰을 추가해야한다. 히든으로 추가하자. -->
+					<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 					<div class="form-group">
 						<label>Title</label> <input class="form-control" name='title'>
 					</div>
@@ -61,7 +64,8 @@
 					</div>
 
 					<div class="form-group">
-						<label>Writer</label> <input class="form-control" name='writer'></input>
+						<label>Writer</label> <!-- 작성자는 사용자 아이디를 자동으로 넣어준다. -->
+						<input class="form-control" name='writer' value ='<sec:authentication property="principal.username"/>' readonly="readonly"/>
 					</div>
 
 					<button type="submit" class="btn btn-default">submit button</button>
@@ -168,6 +172,8 @@ $(document).ready(function(e){
 		uploadUL.append(str);
 	} 
 	
+	var csrfHeaderName = "${_csrf.headerName}";
+	var csrfTokenValue = "${_csrf.token}";
 	
 	// 첨부파일 업로드는 <input type='file'>의 내용이 변경되는 것을 감지하여 처리
 	$("input[type='file']").change(function(e){
@@ -188,6 +194,9 @@ $(document).ready(function(e){
 			url : '/uploadAjaxAction', //Http요청 보낼 곳
 			processData : false,
 			contentType : false,
+			beforeSend : function(xhr){
+				xhr.setRequestHeader(csrfHeaderName, csrfTokenValue);
+			},
 			data : formData,
 			type : 'POST',
 			dataType : 'json', //서버에서 보내줄 데이터타입
@@ -211,6 +220,9 @@ $(document).ready(function(e){
 		$.ajax({
 			url : '/deleteFile',
 			data: {fileName : targetFile, type : type},
+			beforeSend : function(xhr){
+				xhr.setRequestHeader(csrfHeaderName, csrfTokenValue);
+			},
 			dataType:'text',
 			type:'POST',
 			success : function(result){

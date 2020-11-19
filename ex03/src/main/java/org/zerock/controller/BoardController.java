@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,7 +48,15 @@ public class BoardController {
 		model.addAttribute("pageMaker", new PageDTO(cri,total));
 	}
 	
+	@GetMapping("/register")
+	@PreAuthorize("isAuthenticated()") //로그인한 사용자만 글작성
+	public void register() {
+		//입력페이지를 보여주는 역할만 해서 별도의 처리가 필요하지않는다.
+		//리턴이 void인 경우 해당 URL경로를 그대로 jsp파일의 이름으로 사용
+	}
+	
 	@PostMapping("/register")
+	@PreAuthorize("isAuthenticated()")
 	public String register(BoardVO board, RedirectAttributes rttr) {
 		//새롭게 등록된 게시물의 번호를 같이 전달하기위해 RedirectAttributes사용
 		
@@ -71,7 +80,7 @@ public class BoardController {
 		
 	}
 
-	
+	@PreAuthorize("principal.username == #board.writer") //컨트롤러에 전달되는 파라미터를 #로 접근가능.
 	@PostMapping("/modify")
 	public String modify(BoardVO board, @ModelAttribute("cri") Criteria cri, RedirectAttributes rttr) {
 		log.info("modify : "+board);
@@ -84,6 +93,7 @@ public class BoardController {
 
 	}
 	
+	@PreAuthorize("principal.username == #writer")  // 게시물의 번호 bno만 받았지만 writer추가하여 사용
 	@PostMapping("/remove")
 	public String remove(@RequestParam("bno") Long bno, @ModelAttribute("cri") Criteria cri, RedirectAttributes rttr) {
 		log.info("remove.."+bno);
@@ -99,11 +109,7 @@ public class BoardController {
 		
 	}
 	
-	@GetMapping("/register")
-	public void register() {
-		//입력페이지를 보여주는 역할만 해서 별도의 처리가 필요하지않는다.
-		//리턴이 void인 경우 해당 URL경로를 그대로 jsp파일의 이름으로 사용
-	}
+
 	
 	@GetMapping(value="/getAttachList", produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ResponseBody

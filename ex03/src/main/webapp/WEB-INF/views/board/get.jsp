@@ -2,6 +2,7 @@
     pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 
 <%@include file="../includes/header.jsp"%>
 
@@ -93,10 +94,15 @@
 				<div class= "form group">
 				<label>Writer</label> <input class="form-control" name='writer'
 				value = '<c:out value="${board.writer}"/>' readonly="readonly">
-				</div>				
-				
-				<button data-oper='modify' class="btn btn-default" >
-				Modify</button>
+				</div>
+				<!-- sec:authentication태그를 매번 이용하는것이 불편하기 대문에 로그인과 관련된 정보인 principal은 아예 pinfo라는 변수로 사용! -->
+				<sec:authentication property="principal" var="pinfo"/>
+				<sec:authorize access="isAuthenticated()">
+					
+					<c:if test="${pinfo.username eq board.writer}">
+						<button data-oper='modify' class="btn btn-default">Modify</button>
+					</c:if>
+				</sec:authorize>
 				<button data-oper='list' class="btn btn-info">List</button>
 			
 				<form id ='operForm' action="/board/modify" method ="get">
@@ -142,7 +148,9 @@
 	<div class = "panel panel-default">
 		<div class ="panel-heading">
 			<i class ="fa fa-comments fa-fw"></i>Reply~
+			<sec:authorize access="isAuthenticated()">
 			<button id='addReplyBtn' class='btn btn-primary btn-xs pull-right'>New Reply</button>
+			</sec:authorize>
 		</div>
 		
 	<!-- /.panel-heading -->
@@ -265,15 +273,34 @@ $(document).ready(function(){
 	var modalRemoveBtn = $("#modalRemoveBtn");
 	var modalRegisterBtn = $("#modalRegisterBtn");
 	
+	var replyer = null;
+	<sec:authorize access="isAuthenticated()"> // 코드가 에러날 수 있지만 실제론 정상동작하는 코드다.
+	replyer = '<sec:authentication property="principal.username"/>';
+	</sec:authorize>
+	
+	var csrfHeaderName = "${_csrf.headerName}";
+	var csrfTokenValue = "${_csrf.token}";
+	
+	$("#modalCloseBtn").on("click", function(e){
+    	modal.modal('hide');
+    });
+    
 	$("#addReplyBtn").on("click", function(e){
 	
 		modal.find("input").val("");
+		modal.find("input[name='replyer']").val(replyer);
 		modalInputReplyDate.closest("div").hide();
 		modal.find("button[id != 'modalCloseBtn']").hide();
 		
 		modalRegisterBtn.show();
 		
 		$(".modal").modal("show");
+	});
+	
+	//ajax spring security header..
+	//ajaxSend를 이용한 코드는 모든 ajax전송시에 csrf토큰을 같이 전송하도록 세팅
+	$(document).ajaxSend(function(e,xhr,options){
+		xhr.setRequestHeader(csrfHeaderName, csrfTokenValue);
 	});
 	
 	modalRegisterBtn.on("click", function(e){
@@ -316,10 +343,28 @@ $(document).ready(function(){
 	});
 	
 	modalModBtn.on("click",function(e){
+		
+		var originalReplyer = modalInputReplyer.val();
+		
 		var reply = {
 				rno:modal.data("rno"),
-				reply:modalInputReply.val()
+				reply:modalInputReply.val(),
+				replyer:originalReplyer
 		};
+		
+		//원래 댓글작성자일때만 삭제가능
+		if(!replyer){
+			alert("로그인 후 삭제가 가능하다");
+			modal.modal("hide");
+			return;
+		}
+				
+		if(replyer != originalReplyer){
+			alert("자신이 작성한 댓글만 삭제가 가능하다");
+			modal.modal("hide");
+			return;
+		}
+		
 		
 		replyService.update(reply, function(result){
 			alert(result);
@@ -329,10 +374,23 @@ $(document).ready(function(){
 	});
 	
 	modalRemoveBtn.on("click",function(e){
-		var rno = 
-				modal.data("rno");
+		var rno = modal.data("rno");
+		//원래 댓글작성자일때만 삭제가능
+		if(!replyer){
+			alert("로그인 후 삭제가 가능하다");
+			modal.modal("hide");
+			return;
+		}
 		
-		replyService.remove(rno, function(result){
+		var originalReplyer = modalInputReplyer.val();
+		
+		if(replyer != originalReplyer){
+			alert("자신이 작성한 댓글만 삭제가 가능하다");
+			modal.modal("hide");
+			return;
+		}
+		
+		replyService.remove(rno, originalReplyer, function(result){
 			alert(result);
 			modal.modal("hide");
 			showList(pageNum);//목록 갱신

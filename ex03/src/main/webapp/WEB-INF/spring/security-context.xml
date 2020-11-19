@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+<!-- spring Bean configuration file로 만들었음 -->
+<!-- 스프링 시큐리티는 단독으로 설정할 수 있기때문에 별도로 security-context.xml을 따로 작성하는 것이 좋다. -->
+<!-- XML을 이용해서 스프링 시큐리티를 설정할때는 5.0네임스페이스에서 문제가 발생해서 바꿔준다 -->
+	
+	<!-- 빈으로 등록 -->
+	<bean id="customAccessDenied" class="org.zerock.security.CustomAccessDeniedHandler"></bean>
+	<bean id="customLoginSuccess" class="org.zerock.security.CustomLoginSuccessHandler"></bean>
+	
+	<!-- 패스워드 인코딩 빈 등록 -->
+	<!--  <bean id ="customPasswordEncoder" class="org.zerock.security.CustomNoOpPasswordEncoder"></bean>-->
+	<bean id ="bcryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+	<bean id="customUserDetailsService" class="org.zerock.security.CustomUserDetailsService"></bean>
+	
+	<security:http>
+		<security:intercept-url pattern="/sample/all" access="permitAll"/>
+		
+		<security:intercept-url pattern="/sample/member" access="hasRole('ROLE_MEMBER')"/>
+		<security:intercept-url pattern="/sample/admin" access="hasRole('ROLE_ADMIN')"/>
+		<!-- 이방법말고 어노테이션을 사용할 수 도 있다. -->
+
+		<!-- 접근제한 페이지  설정 -->
+		<!-- 단순히 에러페이지만 : <security:access-denied-handler error-page="/accessError"/>-->
+		<security:access-denied-handler ref="customAccessDenied"/>
+		
+		<!-- <security:form-login/>-->
+		<security:form-login login-page="/customLogin"/>
+		<!--<security:form-login login-page="/customLogin" authentication-success-handler-ref="customLoginSuccess"/>-->
+		<security:logout logout-url="/customLogout" invalidate-session="true"/>
+		
+		<security:remember-me data-source-ref="dataSource" token-validity-seconds="604800"/>
+		<!-- 로그아웃시 쿠키삭제 -->
+		<security:logout logout-url="/customLogout" 
+		invalidate-session="true" delete-cookies="remeber-me,JESSION_ID"/>
+	
+	</security:http>
+	
+	<security:authentication-manager>
+		<security:authentication-provider user-service-ref="customUserDetailsService">
+			<!-- 
+			<security:user-service>
+			시큐리티5부터는 passwordEncoder라는 존재를 이용하도록 만들었다.
+			임시방편으로 포매팅 처리를 지정해서 패스워드 인코딩 방식을 지정해줄 수 있다.
+			
+			만일 패스워드의 인코딩 처리없이 사용하고 싶다면 패스워드 앞에 {noop}문자열을 추가한다. 
+				<security:user name="member" password="{noop}member" authorities="ROLE_MEMBER"/>
+				<security:user name="admin" password="{noop}admin" authorities="ROLE_ADMIN"/>
+			
+			</security:user-service>-->
+			<!-- db를 이용한 로그인 -->
+			<!-- users-by-username-query를 통해 id에 따른 비번일치여부 확인
+			authorities-by-username-query에서 로그인에 성공한 사용자의 권한 확인 -->
+			<!-- <security:jdbc-user-service data-source-ref="dataSource"
+				users-by-username-query="select userid, userpw, enabled from tbl_member where userid=?"
+				authorities-by-username-query="select userid, auth from tbl_member_auth where userid=?"/>-->
+			<!-- <security:password-encoder ref="customPasswordEncoder"/>-->
+			<security:password-encoder ref="bcryptPasswordEncoder"/>
+		</security:authentication-provider>
+	</security:authentication-manager>
+</beans>
