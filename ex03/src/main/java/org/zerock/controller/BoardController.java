@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,16 +25,18 @@ import org.zerock.domain.Criteria;
 import org.zerock.domain.PageDTO;
 import org.zerock.service.BoardService;
 
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
 
+@RequiredArgsConstructor
 @Controller
 @Log4j
 @RequestMapping("/board/*")
 public class BoardController {
-	@Setter(onMethod_= {@Autowired})//생성자를 만들지 않았었을 경우만!
-	private BoardService service;//주입
 	
+	private final BoardService service;
+	
+	// 게시물의 목록 조회
 	@GetMapping("/list")
 	public void list(Model model, Criteria cri) {
 		
@@ -48,30 +49,33 @@ public class BoardController {
 		model.addAttribute("pageMaker", new PageDTO(cri,total));
 	}
 	
+	// 게시물의 등록페이지
 	@GetMapping("/register")
-	@PreAuthorize("isAuthenticated()") //로그인한 사용자만 글작성
+	@PreAuthorize("isAuthenticated()") // 로그인한 사용자만 글작성
 	public void register() {
-		//입력페이지를 보여주는 역할만 해서 별도의 처리가 필요하지않는다.
-		//리턴이 void인 경우 해당 URL경로를 그대로 jsp파일의 이름으로 사용
+		// 입력페이지를 보여주는 역할만 해서 별도의 처리가 필요하지 않는다.
+		// 리턴이 void인 경우 해당 URL경로를 그대로 jsp파일의 이름으로 사용
 	}
 	
+	// 게시물의 등록
 	@PostMapping("/register")
 	@PreAuthorize("isAuthenticated()")
 	public String register(BoardVO board, RedirectAttributes rttr) {
-		//새롭게 등록된 게시물의 번호를 같이 전달하기위해 RedirectAttributes사용
 		
 		log.info("regiter : "+board);
-		//첨부파일
+		
+		// 첨부파일도 등록
 		if(board.getAttachList() != null) {
 			board.getAttachList().forEach(attach->log.info(attach));
 		}
 		service.register(board);
 		rttr.addFlashAttribute("result", board.getBno());
 		
+		// 새롭게 등록된 게시물의 번호를 같이 전달
 		return "redirect:/board/list";
-		//등록작업이 끝난후 다시 목록화면으로 이동
 	}
 	
+	// 게시물의 조회페이지와 수정페이지
 	@GetMapping({"/get","/modify"})
 	public void get(@RequestParam("bno") Long bno, @ModelAttribute("cri") Criteria cri, Model model) {
 		
@@ -80,6 +84,7 @@ public class BoardController {
 		
 	}
 
+	// 게시물 수정
 	@PreAuthorize("principal.username == #board.writer") //컨트롤러에 전달되는 파라미터를 #로 접근가능.
 	@PostMapping("/modify")
 	public String modify(BoardVO board, @ModelAttribute("cri") Criteria cri, RedirectAttributes rttr) {
@@ -93,11 +98,11 @@ public class BoardController {
 
 	}
 	
-	@PreAuthorize("principal.username == #writer")  // 게시물의 번호 bno만 받았지만 writer추가하여 사용
+	// 게시물 삭제
+	@PreAuthorize("principal.username == #writer")
 	@PostMapping("/remove")
-	public String remove(@RequestParam("bno") Long bno, @ModelAttribute("cri") Criteria cri, RedirectAttributes rttr) {
-		log.info("remove.."+bno);
-		//첨부파일 삭제
+	public String remove(@RequestParam("bno") Long bno, @ModelAttribute("cri") Criteria cri, RedirectAttributes rttr, String writer) {
+		log.info("remove.."+writer);
 		List<BoardAttachVO> attachList = service.getAttachList(bno);
 		if(service.remove(bno)) {
 			// 첨부파일 삭제
@@ -108,15 +113,13 @@ public class BoardController {
 
 		
 	}
-	
 
-	
+	// 해당 게시물의 첨부파일 목록 조회
 	@GetMapping(value="/getAttachList", produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ResponseBody
 	public ResponseEntity<List<BoardAttachVO>> getAttachList(Long bno){
 		log.info("getAttachList " + bno);
 		return new ResponseEntity<>(service.getAttachList(bno),HttpStatus.OK);
-		
 	}
 	
 	// 첨부파일 삭제
@@ -124,7 +127,6 @@ public class BoardController {
 		if(attachList == null || attachList.size() == 0) {
 			return;
 		}
-		
 		log.info("delete attach files..");
 		log.info(attachList);
 		
@@ -137,11 +139,9 @@ public class BoardController {
 					Path thumbNail = Paths.get("C:\\java\\upload\\"+attach.getUploadPath()+"\\s_"+attach.getUuid()+"_"+attach.getFileName());
 					Files.delete(thumbNail);
 				}
-				
 			} catch(Exception e) {
 			log.error("delete file error"+e.getMessage());
 			}
-		
-		}); //end foreach
+		});
 	}
 }

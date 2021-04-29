@@ -10,18 +10,17 @@ import org.zerock.domain.ReplyVO;
 import org.zerock.mapper.BoardMapper;
 import org.zerock.mapper.ReplyMapper;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
 
+@RequiredArgsConstructor
 @Service
 @Log4j
-@AllArgsConstructor
 public class ReplyServiceImpl implements ReplyService {
 
-	private ReplyMapper mapper; //의존성 자동 주입
-	
-	//댓글수 띄어주기
-	private BoardMapper boardMapper;
+	// 생성자 주입
+	private final ReplyMapper mapper; 
+	private final BoardMapper boardMapper;
 
 	@Transactional
 	@Override

@@ -94,7 +94,7 @@
 						
 						<c:forEach var="num" begin="${pageMaker.startPage }"
 						end="${pageMaker.endPage }">
-						<li class="paginate_button ${pageMaker.cri.pageNum == num ? "active": "" }"> 
+						<li class="paginate_button ${pageMaker.cri.pageNum == num ? 'active': '' }"> 
 						<a href ="${num }">${num}</a></li>
 						</c:forEach>
 						
@@ -163,9 +163,6 @@ aria-lablelledby="myModalLabel" aria-hidden="true">
 		}
 		
 		$("#regBtn").on("click", function(){
-			<%System.out.println("ji");%>
-
-			console.log("와");
 			self.location="/board/register";
 		});
 		

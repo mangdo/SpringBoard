@@ -17,23 +17,22 @@ import org.zerock.domain.ReplyPageDTO;
 import org.zerock.domain.ReplyVO;
 import org.zerock.service.ReplyService;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
 
+@RequiredArgsConstructor
 @RequestMapping("/replies/")
 @RestController
 @Log4j
-@AllArgsConstructor
 public class ReplyController {
 
-	private ReplyService service;
+	// 생성자 주입
+	private final ReplyService service;
 	
-	//JSON 타입으로 된 댓글 데이터를 받아 문자열로 결과를 알려준다.
-	//댓글 등록
+	// 댓글 등록
 	@PreAuthorize("isAuthenticated()")
 	@PostMapping(value="/new", consumes="application/json",produces = {MediaType.TEXT_PLAIN_VALUE})
 	public ResponseEntity<String> create(@RequestBody ReplyVO vo){
-		//@RequestBody를 이용해서 JSON데이터를 ReplyVO타입으로 변황하도록 지정한다
 		
 		log.info("ReplyVO : "+vo);
 		int insertCount = service.register(vo);
@@ -46,6 +45,7 @@ public class ReplyController {
 		
 	}
 	
+	// 댓글 목록 조회
 	@GetMapping( value="/pages/{bno}/{page}",produces= {MediaType.APPLICATION_XML_VALUE,MediaType.APPLICATION_JSON_UTF8_VALUE })
 	public ResponseEntity<ReplyPageDTO> getList(
 			@PathVariable("page") int page,
@@ -61,7 +61,7 @@ public class ReplyController {
 		return new ResponseEntity<>(service.getListPage(cri,bno), HttpStatus.OK);
 	}
 	
-	//댓글 가져오기
+	// 댓글 조회
 	@GetMapping(value="/{rno}",produces= {MediaType.APPLICATION_XML_VALUE,MediaType.APPLICATION_JSON_UTF8_VALUE })
 	public ResponseEntity<ReplyVO> get(@PathVariable("rno") Long rno){
 		log.info("get : "+rno);
@@ -69,7 +69,7 @@ public class ReplyController {
 		
 	}
 	
-	//댓글지우기
+	// 댓글 삭제
 	@PreAuthorize("principal.username == #vo.replyer")
 	@DeleteMapping(value="/{rno}")
 	public ResponseEntity<String> remove(@RequestBody ReplyVO vo, @PathVariable("rno") Long rno){
@@ -81,7 +81,7 @@ public class ReplyController {
 		
 	}
 	
-	//댓글 수정
+	// 댓글 수정
 	@PreAuthorize("principal.username == #vo.replyer")
 	@RequestMapping(method= { RequestMethod.PUT, RequestMethod.PATCH},value="/{rno}", consumes="application/json",
 			produces= {MediaType.TEXT_PLAIN_VALUE })

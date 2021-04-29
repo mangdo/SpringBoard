@@ -10,14 +10,16 @@ import lombok.extern.log4j.Log4j;
 
 @Controller
 @Log4j
-public class CommonController {
+public class LoginController {
 	
+	// 접근 제한 페이지
 	@GetMapping("/accessError")
 	public void accessDenied(Authentication auth, Model model) {
 		log.info("acces Denied : "+auth);
 		model.addAttribute("msg","Access Denied");
 	}
 	
+	// 로그인 페이지
 	@GetMapping("/customLogin")
 	public void loginInput(String error, String logout, Model model) {
 		log.info("error: "+error);
@@ -31,13 +33,13 @@ public class CommonController {
 		}
 	}
 	
+	// 로그아웃 페이지
 	@GetMapping("/customLogout")
 	public void logoutGET() {
 		log.info("custom logout");
 	}
-	
-	//post방식으로 로그아웃을 하게되면 자동으로 로그인 페이지를 호출한다. 
-	//이부분은 시큐리티의 기본설정이므로 필요하다면 logout-success-url속성을 이용해서 변경가능하다.
+
+	// 로그아웃
 	@PostMapping("/customLogout")
 	public void logoutPost() {
 		log.info("post custom logout");
