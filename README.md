@@ -30,7 +30,7 @@
 
 ## 4. 실행화면
 
-<img src=" ">
+<img src="https://user-images.githubusercontent.com/70243735/116489190-4c7eb100-a8cf-11eb-8efd-413448cc76bf.gif">
 
 ## 5. 핵심 기능
 
