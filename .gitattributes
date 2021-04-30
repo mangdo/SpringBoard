@@ -1,1 +1,2 @@
-*.html linguist-detecatable=ture
+* linguist-vendored
+*.java linguist-vendored=false
